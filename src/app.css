@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+.layer-1
+{
+  z-index: 99;
+}
+.layer-2
+{
+  z-index: 98;
+}
