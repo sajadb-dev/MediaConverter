@@ -34,7 +34,7 @@ function minimizewindow(){
     </button>
     <button 
       id= "maximizeBtn" 
-      class="h-full aspect-square flex justify-center items-center bg-transparent hover:bg-gray-400 active:bg-gray-600" 
+      class="h-full aspect-square flex justify-center items-center bg-transparent hover:bg-gray-400 active:bg-gray-600"
       title=''
       type="button"
       aria-label="maximize"

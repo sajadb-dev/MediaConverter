@@ -33,7 +33,6 @@
   </form>
   <p>{greetMsg}</p>
 </main>
-
 <style>
 .logo.vite:hover {
   filter: drop-shadow(0 0 2em #747bff);
