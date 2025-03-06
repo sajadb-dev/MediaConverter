@@ -13,11 +13,14 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "melt": "^0.17.0"
   },
   "devDependencies": {
+    "@melt-ui/pp": "^0.3.2",
+    "@melt-ui/svelte": "^0.86.3",
     "@sveltejs/adapter-static": "^3.0.6",
     "@sveltejs/kit": "^2.9.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
