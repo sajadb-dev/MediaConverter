@@ -15,8 +15,7 @@
         "title": "mediaconverter",
         "width": 800,
         "height": 600,
-        "decorations": false,
-        "transparent": true
+        "decorations": false
       }
     ],
     "security": {

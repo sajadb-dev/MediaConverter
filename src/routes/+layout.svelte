@@ -7,8 +7,8 @@ import '../app.css';
 let { children } = $props();
 </script>
 
-<div class="w-full h-full flex flex-col">
-    <div class="layer-1">
+<div class="flex flex-col">
+    <div>
         <Titlebar/>
         <Menubar/>
         <Controlmenu/>
