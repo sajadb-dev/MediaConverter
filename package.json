@@ -13,6 +13,8 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@fontsource-variable/nunito": "^5.2.5",
+    "@fontsource/lobster": "^5.2.5",
     "@rich_harris/svelte-split-pane": "^2.0.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tauri-apps/api": "^2",
