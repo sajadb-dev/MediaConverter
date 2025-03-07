@@ -2,9 +2,10 @@
     import { FileUpload } from "melt/builders";
     import { HSplitPane, VSplitPane } from 'svelte-split-pane';
     import Detailpanel from "../components/detailpanel.svelte";
-  import Propertiespanel from "../components/propertiespanel.svelte";
+    import Propertiespanel from "../components/propertiespanel.svelte";
+    import Fileitem from "../components/fileitem.svelte";
 
-    const file = false;
+    const file = true;
 
     const fileUpload = new FileUpload();
 </script>
@@ -24,7 +25,15 @@
                           {/if}
                         </div>
                         {:else}
-                        <div></div>
+                        <div class="w-full h-full flex flex-col items-center py-4 gap-4 overflow-auto">
+                            <Fileitem title="" progressvalue = {2} />
+                            <Fileitem title=""/>
+                            <Fileitem title=""/>
+                            <Fileitem title=""/>
+                            <Fileitem title=""/>
+                            <Fileitem title=""/>
+                            <Fileitem title=""/>
+                        </div>
                         {/if}
                     </div>
                 </top>

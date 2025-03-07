@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "mediaconverter",
-        "width": 800,
-        "height": 600,
+        "width": 1024,
+        "height": 700,
         "decorations": false
       }
     ],
