@@ -1,1 +1,1 @@
-sajadb-dev's Media Converter App Based made with Svelte And Tauri
+sajadb-dev's Media Converter App made with Svelte And Tauri
