@@ -1,6 +1,8 @@
 <script lang="ts">
   import { createMenubar, melt } from '@melt-ui/svelte'
 
+  let { addfile } = $props();
+
   const {
     elements: { menubar },
     builders: { createMenu }

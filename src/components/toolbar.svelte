@@ -3,23 +3,23 @@
     import { Tooltip } from "melt/builders";
     
     export let orientation: CreateSeparatorProps['orientation'] = 'vertical';
-    const addtooltip = new Tooltip();
-    const removetooltip = new Tooltip();
+    export let addfile;
+    const addtooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
+    const removetooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
+    const converttooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
+    const pausetooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
+    const canceltooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
   
     const {
     elements: { root: vertical },
   } = createSeparator({
     orientation,
   });
-
-
-
-
 </script>
 
 <div class="h-14 px-4 flex items-center border-b border-slate-200 gap-6">
     <div class="flex gap-4">
-        <button {...addtooltip.trigger} type="button" class="w-24 h-10 font-bold rounded bg-blue-300 hover:bg-blue-500 active:bg-blue-600">ADD</button>
+        <button {...addtooltip.trigger} type="button" class="w-24 h-10 font-bold rounded bg-blue-300 hover:bg-blue-500 active:bg-blue-600" onclick={addfile}>ADD</button>
         <div {...addtooltip.content} class="bg-slate-100 rounded-sm p-2">
             <div {...addtooltip.arrow}></div>
             <p class="text-sm">add media file</p>
@@ -34,13 +34,25 @@
     </div>
     <div {...$vertical} use:vertical class="h-8 w-[1px] bg-slate-300"></div>
     <div class="flex gap-4">
-        <button type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:bg-lime-400 active:bg-lime-500 hover:text-white active:text-white" aria-label="pause">
+        <button {...converttooltip.trigger} type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:bg-lime-400 active:bg-lime-500 hover:text-white active:text-white" aria-label="pause">
+            <div {...converttooltip.content} class="bg-slate-100 rounded-sm p-2">
+                <div {...converttooltip.arrow}></div>
+                <p class="text-sm">convert selected media files</p>
+              </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" d="M5.85.854a.5.5 0 0 0-.707-.707l-3 3a.5.5 0 0 0 0 .707l3 3a.5.5 0 0 0 .707-.707L3.7 3.997h7.79a2.5 2.5 0 0 1 2.5 2.5v2a.5.5 0 0 0 1 0v-2c0-1.93-1.57-3.5-3.5-3.5H3.7L5.85.847zM2 7.5a.5.5 0 0 0-1 0v2C1 11.43 2.57 13 4.5 13h7.79l-2.15 2.15a.5.5 0 0 0 .707.707l3-3a.5.5 0 0 0 0-.707l-3-3a.5.5 0 0 0-.707.707l2.15 2.15H4.5a2.5 2.5 0 0 1-2.5-2.5v-2z"/></svg>
         </button>
-        <button type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:bg-yellow-500 active:bg-orange-400 hover:text-white active:text-white" aria-label="remove">
+        <button {...pausetooltip.trigger} type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:bg-yellow-500 active:bg-orange-400 hover:text-white active:text-white" aria-label="remove">
+            <div {...pausetooltip.content} class="bg-slate-100 rounded-sm p-2">
+                <div {...pausetooltip.arrow}></div>
+                <p class="text-sm">pause convertion</p>
+              </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M5 2a1 1 0 0 1 1 1v10a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1m6 0a1 1 0 0 1 1 1v10a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1" clip-rule="evenodd"/></svg>
         </button>
-        <button type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:bg-rose-500 active:bg-rose-700 hover:text-white active:text-white" aria-label="cancel">
+        <button {...canceltooltip.trigger} type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:bg-rose-500 active:bg-rose-700 hover:text-white active:text-white" aria-label="cancel">
+            <div {...canceltooltip.content} class="bg-slate-100 rounded-sm p-2">
+                <div {...canceltooltip.arrow}></div>
+                <p class="text-sm">cancel convertion</p>
+              </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" d="m8 8.71l-4.15 4.15a.48.48 0 0 1-.352.146a.5.5 0 0 1-.361-.142a.5.5 0 0 1-.142-.361q0-.205.146-.352l4.15-4.15l-4.15-4.15a.48.48 0 0 1-.146-.356a.496.496 0 0 1 .502-.497q.205 0 .352.146L8 7.294l4.15-4.15a.48.48 0 0 1 .356-.146q.103 0 .19.039a.497.497 0 0 1 .161.814l-4.15 4.15l4.15 4.15a.496.496 0 0 1 0 .708a.5.5 0 0 1-.351.146a.48.48 0 0 1-.356-.146z"/></svg>
         </button>
     </div>

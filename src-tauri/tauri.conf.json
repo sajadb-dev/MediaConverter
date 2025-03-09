@@ -15,7 +15,8 @@
         "title": "mediaconverter",
         "width": 1024,
         "height": 700,
-        "decorations": false
+        "decorations": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {
