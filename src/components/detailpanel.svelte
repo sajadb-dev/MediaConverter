@@ -1,6 +1,5 @@
 <script lang="ts">
     let { file } = $props();
-    $effect( ()=> console.log(file));
 </script>
 
 <div class="w-full h-full ml-4">

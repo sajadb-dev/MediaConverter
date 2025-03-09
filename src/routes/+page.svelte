@@ -17,20 +17,21 @@
 		}
 		return [fileUpload.selected].filter((f): f is File => !!f);
 	});
+    
+    let selectedfile = $state();
 
-    let selectedfile;
-
-    function focuscap () {
-        console.log("captured");
+    function focuscap (a : number) {
+        selectedfile = files[a];
+        console.log(a);
+        console.log(selectedfile);
     }
 
-    $effect(() => {console.log(files.length > 0)})
 </script>
 <div class="flex flex-col">
     <div>
         <Titlebar/>
         <Menubar addfile={fileUpload.trigger.onclick}/>
-        <Toolbar addfile={fileUpload.trigger.onclick}/>
+        <Toolbar addfile={fileUpload.trigger.onclick} removefile={()=> {if(selectedfile != undefined) fileUpload.remove(selectedfile)}}/>
     </div>
 </div>
 <div class="h-full box-border overflow-hidden">
@@ -51,7 +52,12 @@
                         </div>
                         <div class="w-full h-full flex-col items-center py-4 gap-4 overflow-auto {files.length === 0 ? 'hidden' : 'flex'}">
                             {#each files as file, i (i)}
-                                <Fileitem title={file.name.replace(/\.[^/.]+$/, "")} filetype={file.type} progressvalue={0} focus={focuscap} />
+                                <Fileitem 
+                                    title={file.name.replace(/\.[^/.]+$/, "")} 
+                                    filetype={file.type} 
+                                    progressvalue={0} 
+                                    focus={focuscap(i)} 
+                                    index={i} />
                             {/each}
                         </div>
                     </div>

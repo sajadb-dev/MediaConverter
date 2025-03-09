@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Progress } from "melt/builders";
     
-    const { title, progressvalue = 0, filetype, focus } = $props()
+    const { title, progressvalue = 0, filetype, focus, index } = $props()
     
     const progress = new Progress();
     progress.value = progressvalue;
@@ -11,7 +11,7 @@
      }
  
 </script>
-<div class="w-[90%] min-h-22 max-h-22 flex bg-slate-100 rounded-sm overflow-hidden focus:ring-2" onclick={focus} onkeydown={focus} role="button" tabindex="0">
+<div class="w-[90%] min-h-22 max-h-22 flex bg-slate-100 rounded-sm overflow-hidden focus:ring-2" onclick={focus} onkeydown={focus} role="button" tabindex={index}>
     <div class="h-full min-w-6 flex items-center justify-center border-r border-slate-200">
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M20 7H4m16 5H4m16 5H4"/></svg>
     </div>
