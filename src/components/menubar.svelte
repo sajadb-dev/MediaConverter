@@ -16,7 +16,7 @@
   <div {...$menubar} class="h-full flex gap-2 text-sm" use:menubar>
     <button {...$trigger} class="h-full w-16 flex items-center justify-center hover:bg-slate-100 active:hover:bg-slate-200" use:trigger>File</button>
     <div {...$menu} class="max-h-[300px] min-w-[220px] p-1 flex flex-col shadow-lg bg-white text-sm rounded-sm ring-0" use:menu>
-      <div {...$item} class="h-6 min-h-[24px] pl-6 pr-1 rounded-sm hover:bg-slate-100 select-none outline-none z-20" use:item>Add</div>
+      <div {...$item} class="h-6 min-h-[24px] pl-6 pr-1 rounded-sm hover:bg-slate-100 select-none outline-none z-20" use:item on:m-click={addfile}>Add</div>
       <div {...$item} class="h-6 min-h-[24px] pl-6 pr-1 rounded-sm hover:bg-slate-100 select-none outline-none z-20" use:item>...</div>
       <div {...$item} class="h-6 min-h-[24px] pl-6 pr-1 rounded-sm hover:bg-slate-100 select-none outline-none z-20" use:item>Exit</div>
     </div>
