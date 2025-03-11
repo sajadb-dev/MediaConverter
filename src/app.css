@@ -7,7 +7,7 @@ html, body {
 }
 
 .dot {
-  background-image: radial-gradient(circle at 1px 1px, rgb(230, 230, 230) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgb(215, 215, 215) 1px, transparent 0);
   background-size: 15px 15px;
 }
 

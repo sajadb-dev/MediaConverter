@@ -8,7 +8,6 @@
     const converttooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
     const pausetooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
     const canceltooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
-  
 </script>
 
 <div class="h-14 px-4 flex items-center border-b border-slate-200 gap-6">

@@ -1,10 +1,10 @@
 <script lang="ts">
     import { FileUpload } from "melt/builders";
     import { HSplitPane, VSplitPane } from 'svelte-split-pane';
-    import Detailpanel from "../components/detailpanel.svelte";
-    import Propertiespanel from "../components/propertiespanel.svelte";
-    import Fileitem from "../components/fileitem.svelte";
-    import { SvelteSet } from "svelte/reactivity";
+    import Detailpanel from '../components/detailpanel.svelte';
+    import Propertiespanel from '../components/propertiespanel.svelte';
+    import Fileitem from '../components/fileitem.svelte';
+    import { SvelteSet } from 'svelte/reactivity';
     import Toolbar from '../components/toolbar.svelte';
     import Menubar from '../components/menubar.svelte';
     import Titlebar from '../components/titlebar.svelte';
