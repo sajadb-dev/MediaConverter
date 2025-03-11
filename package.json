@@ -15,13 +15,11 @@
   "dependencies": {
     "@fontsource-variable/nunito": "^5.2.5",
     "@fontsource/lobster": "^5.2.5",
-    "@rich_harris/svelte-split-pane": "^2.0.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "melt": "^0.17.0",
-    "svelte-split-pane": "^0.1.2",
-    "svelte-splitpanes": "^8.0.9"
+    "svelte-split-pane": "^0.1.2"
   },
   "devDependencies": {
     "@melt-ui/pp": "^0.3.2",

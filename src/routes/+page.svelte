@@ -18,7 +18,7 @@
 		return [fileUpload.selected].filter((f): f is File => !!f);
 	});
     
-    let selectedfile = $state();
+    let selectedfile = $state<File>();
 
     function focuscap (a : number) {
         selectedfile = files[a];
