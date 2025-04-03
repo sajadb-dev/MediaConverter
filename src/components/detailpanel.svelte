@@ -4,14 +4,14 @@
 
 <div class="w-full h-full ml-4">
     <div class="w-fit px-2 text-md">Details</div>
-    {#if file.length !== 0}
+    {#if file}
     <div class="w-full h-full py-2 flex flex-row">
         <div class=" h-4/5 aspect-square flex items-center justify-center shadow-lg">
             <img class="rounded" src="https://placehold.co/400x400?text=Thumbnail" alt="" />
         </div>
         <div class="w-2/6 ml-12">
-            <div class=" ">Filepath: <span class="font-bold">{file[0].name.replace(/\.[^/.]+$/, "")}</span></div>
-            <div class=" ">File Format: <span class="font-bold">{file[0].type.split("/").pop()}</span></div>
+            <div class=" ">Filepath: <span class="font-bold"></span></div>
+            <div class=" ">File Format: <span class="font-bold"></span></div>
             <div class=" ">Duration:</div>
             <div class=" ">Size:</div>
         </div>
