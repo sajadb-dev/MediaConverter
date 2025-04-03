@@ -19,21 +19,21 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.2.1",
     "@tauri-apps/plugin-opener": "^2",
-    "melt": "^0.17.0",
+    "melt": "^0.28.2",
     "svelte-splitpanes": "^8.0.9"
   },
   "devDependencies": {
     "@melt-ui/pp": "^0.3.2",
-    "@melt-ui/svelte": "^0.86.3",
-    "@sveltejs/adapter-static": "^3.0.6",
-    "@sveltejs/kit": "^2.9.0",
-    "@sveltejs/vite-plugin-svelte": "^5.0.0",
-    "@tailwindcss/vite": "^4.0.10",
+    "@melt-ui/svelte": "^0.86.6",
+    "@sveltejs/adapter-static": "^3.0.8",
+    "@sveltejs/kit": "^2.20.3",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tailwindcss/vite": "^4.1.1",
     "@tauri-apps/cli": "^2",
-    "svelte": "^5.0.0",
-    "svelte-check": "^4.0.0",
-    "tailwindcss": "^4.0.10",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.3"
+    "svelte": "^5.25.6",
+    "svelte-check": "^4.1.5",
+    "tailwindcss": "^4.1.1",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.5"
   }
 }
