@@ -1,40 +1,72 @@
 <script lang="ts">
-    import { Pane, Splitpanes } from 'svelte-splitpanes';
-    import Detailpanel from '../components/detailpanel.svelte';
-    import Propertiespanel from '../components/propertiespanel.svelte';
-    import Fileitem from '../components/fileitem.svelte';
-    import Toolbar from '../components/toolbar.svelte';
-    import Menubar from '../components/menubar.svelte';
-    import Titlebar from '../components/titlebar.svelte';
-    import { open } from '@tauri-apps/plugin-dialog';
+  import { Pane, Splitpanes } from 'svelte-splitpanes';
+  import Detailpanel from '../components/detailpanel.svelte';
+  import Propertiespanel from '../components/propertiespanel.svelte';
+  import Fileitem from '../components/fileitem.svelte';
+  import Toolbar from '../components/toolbar.svelte';
+  import Menubar from '../components/menubar.svelte';
+  import Titlebar from '../components/titlebar.svelte';
+  import { open } from '@tauri-apps/plugin-dialog';
+  import { invoke } from '@tauri-apps/api/core';
 
-    let isDragging = $state(false);
-    let filepath: string[] = $state([]);
-    let focusedfile: number = $state(0);
+  let isDragging = $state(false);
+  let filepath: String[]  = $state([]);
+  let focusedfile: number = $state(0);
+  let isfilefocused: boolean = $state(false);
+  let videoInfo: VideoInfo[] = $state([]);
 
-    function draghandle(){
-        isDragging = !isDragging;
+  interface VideoInfo {
+    duration: string;
+    format: string;
+    size_bytes: number;
+    file_path: string;
+    file_name: string;
+    width: number;
+    height: number;
+    bitrate: number;
+    aspect_ratio: String;
+    frame_rate: number;
+    thumbnail: string;
+  }
+
+  function draghandle(){ isDragging = !isDragging;}
+
+  async function addfile(){
+    const file = await open({multiple: true, directory: false,
+      filters: [{ 
+        name: 'Video', 
+        extensions: ["mp4", "avi", "mkv", "mov", "wmv", "flv", "webm", "mpg", "mpeg", "3gp", "ogv"]
+    }]
+  });
+   if (Array.isArray(file)) {
+    for (const filepath of file) {
+      try {
+        const info: VideoInfo = await invoke("probe_video_detail", { path: filepath });
+        videoInfo.push(info);
+      } catch (e) {
+        console.error(`Failed to get info for ${filepath}`, e);
+      }
     }
-
-    async function addfile(){
-      const file = await open({multiple: true, directory: false,
-        filters: [{ name: 'Video', extensions: ['mp4', 'm4a', 'avi'] }]
-      });
-      if(file) {
-      file.forEach(element => {
-        filepath.push(element);
-      })};
-      console.log(filepath)
+  } else if (file) {
+    try {
+      const info: VideoInfo = await invoke("get_video_info", { path: file });
+      videoInfo = [info];
+    } catch (e) {
+      console.error(`Failed to get info for ${file}`, e);
     }
+  }
+}
 
-    function removefile() {
-      filepath.splice(focusedfile, 1);
-    }
+function removefile() {
+  if(videoInfo.length > 0)
+  videoInfo.splice(focusedfile, 1);
+}
 
-    function focusgrab(index: number) {
-      focusedfile = index;
-      console.log(focusedfile);
-    }
+function focusgrab(index: number) {
+  isfilefocused = true;
+  focusedfile = index;
+  console.log(focusedfile);
+}
 
 </script>
 
@@ -49,9 +81,9 @@
     <Splitpanes theme="my-theme">
         <Pane  size={75} minSize={20}>
             <Splitpanes theme="my-theme" horizontal={true}>
-                <Pane size={75} minSize={60}>
+                <Pane size={70} minSize={60}>
                     <div class="dot w-full h-full flex justify-center items-center">
-                      {#if filepath.length === 0}
+                      {#if videoInfo.length === 0}
                       <div class="w-full h-full flex justify-center items-center">
                             <button 
                                 class="relative w-9/12 min-h-9/12 flex justify-center items-center rounded-2xl border-2 border-dashed bg-slate-100 border-slate-300 cursor-pointer"
@@ -68,16 +100,27 @@
                             </button>
                         </div>
                         {:else}
-                        <div class="w-full h-full py-6 flex flex-col items-center gap-4">
-                          {#each filepath as file, index }
-                          <Fileitem title={file.split(/[/\\]/).pop()} focus={focusgrab(index)} index={index}/>
+                        <div class="w-full h-full py-6 flex flex-col items-center gap-4 overflow-y-auto">
+                          {#each videoInfo as info, index}
+                          <Fileitem title={info.file_name} focus={focusgrab(index)} index={index}/>
                           {/each}
                         </div>
                         {/if}
                     </div>
                 </Pane>
-                <Pane size={25}>
-                    <Detailpanel file=true/>
+                <Pane size={30}>
+                    <Detailpanel
+                      file={isfilefocused && videoInfo.length > 0}
+                      filepath = {videoInfo[focusedfile].file_path}
+                      duration={videoInfo[focusedfile].duration}
+                      format={videoInfo[focusedfile].format}
+                      size={((videoInfo[focusedfile].size_bytes ?? 0) / (1024*1024)).toFixed(2)}
+                      dimention="{videoInfo[focusedfile].width}x{videoInfo[focusedfile].height}"
+                      framerate={videoInfo[focusedfile].frame_rate}
+                      bitrate={videoInfo[focusedfile].bitrate}
+                      aspectratio={videoInfo[focusedfile].aspect_ratio}
+                      thumbnail
+                      />
                 </Pane>
             </Splitpanes>
         </Pane>

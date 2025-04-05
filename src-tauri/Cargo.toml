@@ -26,4 +26,5 @@ ffmpeg-next = "7.1.0"
 ffmpeg-sys-next = "7.1.0"
 pkg-config = "0.3.32"
 tauri-plugin-dialog = "2"
+image = "0.25.0"
 
