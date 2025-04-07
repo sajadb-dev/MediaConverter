@@ -10,7 +10,6 @@
   import { invoke } from '@tauri-apps/api/core';
 
   let isDragging = $state(false);
-  let filepath: String[]  = $state([]);
   let focusedfile: number = $state(0);
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
@@ -23,13 +22,11 @@
     file_name: string;
     width: number;
     height: number;
-    bitrate: number;
+    bitrate_formated: string;
     aspect_ratio: String;
     frame_rate: number;
     thumbnail: string;
   }
-
-  function draghandle(){ isDragging = !isDragging;}
 
   async function addfile(){
     const file = await open({multiple: true, directory: false,
@@ -42,6 +39,7 @@
     for (const filepath of file) {
       try {
         const info: VideoInfo = await invoke("probe_video_detail", { path: filepath });
+        info.thumbnail = await loadThumbnail(info.thumbnail);
         videoInfo.push(info);
       } catch (e) {
         console.error(`Failed to get info for ${filepath}`, e);
@@ -50,12 +48,22 @@
   } else if (file) {
     try {
       const info: VideoInfo = await invoke("get_video_info", { path: file });
+      info.thumbnail = await loadThumbnail(info.thumbnail);
       videoInfo = [info];
     } catch (e) {
       console.error(`Failed to get info for ${file}`, e);
     }
   }
 }
+
+async function loadThumbnail(path: string) {
+  const imageBytes: number[] = await invoke('get_thumbnail_image', { path });
+  const blob = new Blob([new Uint8Array(imageBytes)], { type: 'image/jpeg' });
+  console.log(URL.createObjectURL(blob))
+  return URL.createObjectURL(blob);
+}
+
+function draghandle(){ isDragging = !isDragging;}
 
 function removefile() {
   if(videoInfo.length > 0)
@@ -66,6 +74,7 @@ function focusgrab(index: number) {
   isfilefocused = true;
   focusedfile = index;
   console.log(focusedfile);
+
 }
 
 </script>
@@ -102,7 +111,12 @@ function focusgrab(index: number) {
                         {:else}
                         <div class="w-full h-full py-6 flex flex-col items-center gap-4 overflow-y-auto">
                           {#each videoInfo as info, index}
-                          <Fileitem title={info.file_name} focus={focusgrab(index)} index={index}/>
+                          <Fileitem 
+                            title={info.file_name} 
+                            focus={focusgrab(index)} 
+                            thumbnail={info.thumbnail} 
+                            index={index}
+                            />
                           {/each}
                         </div>
                         {/if}
@@ -115,11 +129,12 @@ function focusgrab(index: number) {
                       duration={videoInfo[focusedfile].duration}
                       format={videoInfo[focusedfile].format}
                       size={((videoInfo[focusedfile].size_bytes ?? 0) / (1024*1024)).toFixed(2)}
-                      dimention="{videoInfo[focusedfile].width}x{videoInfo[focusedfile].height}"
+                      width={videoInfo[focusedfile].width}
+                      height={videoInfo[focusedfile].height}
                       framerate={videoInfo[focusedfile].frame_rate}
-                      bitrate={videoInfo[focusedfile].bitrate}
+                      bitrate={videoInfo[focusedfile].bitrate_formated}
                       aspectratio={videoInfo[focusedfile].aspect_ratio}
-                      thumbnail
+                      thumbnail={videoInfo[focusedfile].thumbnail}
                       />
                 </Pane>
             </Splitpanes>

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Progress } from "melt/builders";
     
-    const { title, progressvalue = 0, focus, index} = $props()
+    const { title, progressvalue = 0, focus, thumbnail, index} = $props()
     
     const progress = new Progress();
     progress.value = progressvalue;
@@ -18,7 +18,7 @@
     <div class="w-full flex justify-between items-center pl-2 pr-4 gap-2">
         <div class="h-full flex items-center gap-4">
             <div class=" h-4/5 aspect-square flex items-center justify-center shadow-lg">
-                <img class="rounded" src="https://placehold.co/400x400?text=Thumbnail" alt="" />
+                <img class="w-full h-full object-cover rounded" src={thumbnail} alt="" />
             </div>
             <div class="w-52 flex flex-col text-sm truncate">
                 <label for="" class="font-bold">Title:</label>
