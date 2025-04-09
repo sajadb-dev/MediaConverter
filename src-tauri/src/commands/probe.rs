@@ -1,22 +1,8 @@
+extern crate ffmpeg_next as ffmpeg;
 use crate::utils::{thumbnail::generate_thumbnail, format::{format_bitrate, detect_aspect_ratio}};
-use serde::Serialize;
 use std::{fs, path::Path};
-use ffmpeg_next as ffmpeg;
+use crate::utils::structs::VideoInfo;
 
-#[derive(Serialize)]
-pub struct VideoInfo {
-    pub duration: String,
-    pub format: String,
-    pub size_bytes: u64,
-    pub file_path: String,
-    pub file_name: String,
-    pub width: u32,
-    pub height: u32,
-    pub bitrate_formated: String,
-    pub aspect_ratio: String,
-    pub frame_rate: f64,
-    pub thumbnail: String,
-}
 
 #[tauri::command]
 pub fn probe_video_detail(path: String) -> Result<VideoInfo, String> {

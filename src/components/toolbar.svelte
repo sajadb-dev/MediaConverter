@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Tooltip } from "melt/builders";
     
-    let { addfile , removefile } = $props();
+    let { addfile , removefile, convertfile } = $props();
     
     const addtooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
     const removetooltip = new Tooltip({closeOnPointerDown : true, disableHoverableContent : true});
@@ -27,7 +27,7 @@
     </div>
     <div class="h-8/12 border-r border-slate-300"></div>
     <div class="flex gap-4">
-        <button {...converttooltip.trigger} type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:cursor-pointer hover:bg-lime-400 active:bg-lime-500 hover:text-white active:text-white" aria-label="pause">
+        <button {...converttooltip.trigger} type="button" class="w-10 h-10 rounded flex items-center justify-center bg-slate-200 hover:cursor-pointer hover:bg-lime-400 active:bg-lime-500 hover:text-white active:text-white" aria-label="pause" onclick={convertfile}>
             <div {...converttooltip.content} class="bg-slate-100 rounded-sm p-2">
                 <div {...converttooltip.arrow}></div>
                 <p class="text-sm">convert selected media files</p>

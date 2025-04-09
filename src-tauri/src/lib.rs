@@ -2,6 +2,8 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 use std::env;
 use commands::probe::probe_video_detail;
+use commands::metadata::get_metadata;
+use commands::remux::remux;
 
 mod commands;
 mod utils;
@@ -16,7 +18,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![probe_video_detail,get_thumbnail_image])
+        .invoke_handler(tauri::generate_handler![probe_video_detail,get_thumbnail_image,get_metadata,remux])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

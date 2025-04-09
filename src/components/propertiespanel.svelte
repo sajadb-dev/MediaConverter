@@ -27,11 +27,11 @@
     ]
 </script>
 
-<div class="w-full h-full shadow-lg">
+<div class="w-full h-full">
     <div class="w-fit p-2 text-sm">Output Setting:</div>
     <div class="w-full h-full mt-2 px-2">
         <label for="videotitle" class="text-xs font-bold">Output Title:</label>
-        <input id="videotitle" class="w-full h-6 px-2 rounded bg-gray-200" type="text"/>
+        <input id="videotitle" class="w-full h-6 px-2 rounded bg-gray-100" type="text"/>
         <label for="containers" class="text-xs font-bold">Output Container:</label>
         <select name="containers" class="w-full h-6 px-2 rounded text-sm bg-gray-200">
             {#each containerList as item }

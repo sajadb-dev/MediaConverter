@@ -1,18 +1,25 @@
 <script lang="ts">
   import { Pane, Splitpanes } from 'svelte-splitpanes';
-  import Detailpanel from '../components/detailpanel.svelte';
-  import Propertiespanel from '../components/propertiespanel.svelte';
-  import Fileitem from '../components/fileitem.svelte';
-  import Toolbar from '../components/toolbar.svelte';
-  import Menubar from '../components/menubar.svelte';
-  import Titlebar from '../components/titlebar.svelte';
+  import { Titlebar, Toolbar, Menubar, Detailpanel, Propertiespanel, Fileitem } from '../components/index'
+  import { Tabs } from "melt/builders";
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
 
+
+  const tabIds = ["Output Setting", "Metadata"];
+  type TabId = (typeof tabIds)[number];
+  const tabs = new Tabs<TabId>({
+		value: "Tab 1",
+		orientation: 'vertical',
+	});
+  const Outputpath = 'C:/Users/DFM-RENDERING/Desktop';
+
+  let inner = $state<HTMLElement>();
   let isDragging = $state(false);
-  let focusedfile: number = $state(0);
+  let focusedfile: number = $state(-1);
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
+
 
   interface VideoInfo {
     duration: string;
@@ -59,22 +66,34 @@
 async function loadThumbnail(path: string) {
   const imageBytes: number[] = await invoke('get_thumbnail_image', { path });
   const blob = new Blob([new Uint8Array(imageBytes)], { type: 'image/jpeg' });
-  console.log(URL.createObjectURL(blob))
   return URL.createObjectURL(blob);
 }
+
+async function metadata(path: string) {
+  await invoke('get_metadata', {path})
+}
+
+async function remux() {
+  for (const element of videoInfo) {
+    await invoke('remux', { filePath: element.file_path, outputPath: Outputpath });
+  }
+}
+  
 
 function draghandle(){ isDragging = !isDragging;}
 
 function removefile() {
-  if(videoInfo.length > 0)
-  videoInfo.splice(focusedfile, 1);
+  if(focusedfile !== -1){
+    if(videoInfo.length > 0)
+      videoInfo.splice(focusedfile, 1);
+  }
 }
 
 function focusgrab(index: number) {
   isfilefocused = true;
   focusedfile = index;
   console.log(focusedfile);
-
+  metadata(videoInfo[focusedfile].file_path);
 }
 
 </script>
@@ -83,64 +102,78 @@ function focusgrab(index: number) {
     <div>
         <Titlebar/>
         <Menubar addfile={addfile}/>
-        <Toolbar addfile={addfile} removefile={removefile}/>
+        <Toolbar addfile={addfile} removefile={removefile} convertfile={remux}/>
     </div>
 </div>
 <div class="h-full box-border overflow-hidden">
     <Splitpanes theme="my-theme">
-        <Pane  size={75} minSize={20}>
-            <Splitpanes theme="my-theme" horizontal={true}>
-                <Pane size={70} minSize={60}>
-                    <div class="dot w-full h-full flex justify-center items-center">
-                      {#if videoInfo.length === 0}
-                      <div class="w-full h-full flex justify-center items-center">
-                            <button 
-                                class="relative w-9/12 min-h-9/12 flex justify-center items-center rounded-2xl border-2 border-dashed bg-slate-100 border-slate-300 cursor-pointer"
-                                ondragenter={draghandle}
-                                ondragleave={draghandle}
-                                onclick={addfile}
-                                role="dialog"
-                                tabindex="0">
-                              {#if isDragging}
-                                Drop files here
-                              {:else}
-                                <span class="font-bold mr-1">Click to upload</span><p>or drag and drop</p>
-                              {/if}
-                            </button>
-                        </div>
-                        {:else}
-                        <div class="w-full h-full py-6 flex flex-col items-center gap-4 overflow-y-auto">
-                          {#each videoInfo as info, index}
-                          <Fileitem 
-                            title={info.file_name} 
-                            focus={focusgrab(index)} 
-                            thumbnail={info.thumbnail} 
-                            index={index}
-                            />
-                          {/each}
-                        </div>
-                        {/if}
-                    </div>
-                </Pane>
-                <Pane size={30}>
-                    <Detailpanel
-                      file={isfilefocused && videoInfo.length > 0}
-                      filepath = {videoInfo[focusedfile].file_path}
-                      duration={videoInfo[focusedfile].duration}
-                      format={videoInfo[focusedfile].format}
-                      size={((videoInfo[focusedfile].size_bytes ?? 0) / (1024*1024)).toFixed(2)}
-                      width={videoInfo[focusedfile].width}
-                      height={videoInfo[focusedfile].height}
-                      framerate={videoInfo[focusedfile].frame_rate}
-                      bitrate={videoInfo[focusedfile].bitrate_formated}
-                      aspectratio={videoInfo[focusedfile].aspect_ratio}
-                      thumbnail={videoInfo[focusedfile].thumbnail}
-                      />
-                </Pane>
-            </Splitpanes>
+        <Pane  size={65} minSize={20}>
+          <div class="dot w-full h-full flex justify-center items-center">
+            {#if videoInfo.length === 0}
+            <div class="w-full h-full flex justify-center items-center">
+                  <button 
+                      class="relative w-9/12 min-h-9/12 flex justify-center items-center rounded-2xl border-2 border-dashed bg-slate-100 border-slate-300 cursor-pointer"
+                      ondragenter={draghandle}
+                      ondragleave={draghandle}
+                      onclick={addfile}
+                      role="dialog"
+                      tabindex="0">
+                    {#if isDragging}
+                      Drop files here
+                    {:else}
+                      <span class="font-bold mr-1">Click to upload</span><p>or drag and drop</p>
+                    {/if}
+                  </button>
+              </div>
+              {:else}
+              <div class="w-full h-full py-6 flex flex-col items-center gap-4 overflow-y-auto">
+                {#each videoInfo as info, index}
+                <Fileitem 
+                  title={info.file_name} 
+                  focus={focusgrab(index)} 
+                  thumbnail={info.thumbnail} 
+                  index={index}
+                  />
+                {/each}
+              </div>
+              {/if}
+          </div>   
         </Pane>
-        <Pane size={25} minSize={20}>
-            <Propertiespanel/>
+        <Pane size={35} minSize={20}>
+          <div class="h-full flex flex-row ">
+            <div class="flex flex-wrap flex-col overflow-y-clip py-4 "
+              {...tabs.triggerList}>
+            {#each tabIds as id}
+              <button class="cursor-pointer text-ellipsis whitespace-nowrap text-sm outline-none py-0.5"
+                {...tabs.getTrigger(id)}>
+                <div style="writing-mode: vertical-rl;"
+                  class="overflow-clip rounded-sm px-2 py-1 ">
+						      {id}
+					      </div>
+              </button>
+            {/each}
+            </div>
+            {#each tabIds as id}
+              <div class="h-full w-full" {...tabs.getContent(id)}>
+                {#if id === "Output Setting"}
+                <Propertiespanel/>
+                {:else if id === "Metadata"}
+                <Detailpanel
+                  file={isfilefocused && videoInfo.length > 0}
+                  filepath = {videoInfo[focusedfile].file_path}
+                  duration={videoInfo[focusedfile].duration}
+                  format={videoInfo[focusedfile].format}
+                  size={((videoInfo[focusedfile].size_bytes ?? 0) / (1024*1024)).toFixed(2)}
+                  width={videoInfo[focusedfile].width}
+                  height={videoInfo[focusedfile].height}
+                  framerate={videoInfo[focusedfile].frame_rate}
+                  bitrate={videoInfo[focusedfile].bitrate_formated}
+                  aspectratio={videoInfo[focusedfile].aspect_ratio}
+                  />
+                {/if}
+              </div>
+            {/each}
+          </div>
         </Pane>
       </Splitpanes>
 </div>
