@@ -9,10 +9,10 @@
   const tabIds = ["Output Setting", "Metadata"];
   type TabId = (typeof tabIds)[number];
   const tabs = new Tabs<TabId>({
-		value: "Tab 1",
+		value: "Output Setting",
 		orientation: 'vertical',
 	});
-  const Outputpath = 'C:/Users/DFM-RENDERING/Desktop';
+  let Outputpath = 'C:/Users/DFM-RENDERING/Desktop/test.mkv';
 
   let inner = $state<HTMLElement>();
   let isDragging = $state(false);
@@ -74,8 +74,10 @@ async function metadata(path: string) {
 }
 
 async function remux() {
-  for (const element of videoInfo) {
-    await invoke('remux', { filePath: element.file_path, outputPath: Outputpath });
+  if(videoInfo.length !== 0) {
+    for (const element of videoInfo) {
+      await invoke('remux', { inputPath: element.file_path, outputPath: Outputpath });
+    }
   }
 }
   
@@ -144,17 +146,17 @@ function focusgrab(index: number) {
             <div class="flex flex-wrap flex-col overflow-y-clip py-4 "
               {...tabs.triggerList}>
             {#each tabIds as id}
-              <button class="cursor-pointer text-ellipsis whitespace-nowrap text-sm outline-none py-0.5"
+              <button class="group cursor-pointer text-ellipsis whitespace-nowrap text-sm outline-none py-0.5"
                 {...tabs.getTrigger(id)}>
                 <div style="writing-mode: vertical-rl;"
-                  class="overflow-clip rounded-sm px-2 py-1 ">
+                  class="border border-gray-200 group-data-[active]:bg-gray-200 group-data-[active]:border-gray-400 overflow-clip rounded-l-sm px-2 py-1 ">
 						      {id}
 					      </div>
               </button>
             {/each}
             </div>
             {#each tabIds as id}
-              <div class="h-full w-full" {...tabs.getContent(id)}>
+              <div class="h-full w-full border border-gray-100" {...tabs.getContent(id)}>
                 {#if id === "Output Setting"}
                 <Propertiespanel/>
                 {:else if id === "Metadata"}
@@ -163,7 +165,7 @@ function focusgrab(index: number) {
                   filepath = {videoInfo[focusedfile].file_path}
                   duration={videoInfo[focusedfile].duration}
                   format={videoInfo[focusedfile].format}
-                  size={((videoInfo[focusedfile].size_bytes ?? 0) / (1024*1024)).toFixed(2)}
+                  size={videoInfo[focusedfile].size_bytes}
                   width={videoInfo[focusedfile].width}
                   height={videoInfo[focusedfile].height}
                   framerate={videoInfo[focusedfile].frame_rate}

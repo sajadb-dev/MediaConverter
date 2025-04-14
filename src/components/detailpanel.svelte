@@ -13,6 +13,21 @@
 
     let dimention = $derived(`${width}x${height}`);
 
+    function formatFileSize(bytes: number) {
+        const KB = 1024;
+        const MB = KB * 1024;
+        const GB = MB * 1024;
+
+        if (bytes < KB) {
+          return `${bytes} B`;
+        } else if (bytes < MB) {
+          return `${(bytes / KB).toFixed(2)} KB`;
+        } else if (bytes < GB) {
+          return `${(bytes / MB).toFixed(2)} MB`;
+        } else {
+          return `${(bytes / GB).toFixed(2)} GB`;
+        }
+    }
 </script>
 
 <div class="w-full h-full">
@@ -24,7 +39,7 @@
         <label for="videotitle" class="text-xs font-bold">Format:</label>
         <input id="videotitle" value={format} class="w-full h-6 px-2 rounded bg-gray-100" type="text" disabled/>
         <label for="videotitle" class="text-xs font-bold">File Size:</label>
-        <input id="videotitle" value={size} class="w-full h-6 px-2 rounded bg-gray-100" type="text" disabled/>
+        <input id="videotitle" value={formatFileSize(size)} class="w-full h-6 px-2 rounded bg-gray-100" type="text" disabled/>
         <label for="videotitle" class="text-xs font-bold">Dimention:</label>
         <input id="videotitle" value={dimention} class="w-full h-6 px-2 rounded bg-gray-100" type="text" disabled/>
         <label for="videotitle" class="text-xs font-bold">Duration:</label>
