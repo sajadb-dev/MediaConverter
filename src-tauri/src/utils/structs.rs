@@ -11,6 +11,5 @@ pub struct VideoInfo {
     pub height: u32,
     pub bitrate_formated: String,
     pub aspect_ratio: String,
-    pub frame_rate: f64,
-    pub thumbnail: String,
+    pub frame_rate: f64
 }

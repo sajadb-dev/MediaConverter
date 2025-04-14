@@ -5,3 +5,4 @@ export {default as Detailpanel } from './detailpanel.svelte';
 export {default as Titlebar } from './titlebar.svelte';
 export {default as Toolbar } from './toolbar.svelte';
 export {default as Propertiespanel } from './propertiespanel.svelte';
+export {default as Metadataitem } from './metadataitem.svelte';

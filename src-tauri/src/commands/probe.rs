@@ -1,5 +1,5 @@
 extern crate ffmpeg_next as ffmpeg;
-use crate::utils::{thumbnail::generate_thumbnail, format::{format_bitrate, detect_aspect_ratio}};
+use crate::utils::format::{format_bitrate, detect_aspect_ratio};
 use std::{fs, path::Path};
 use crate::utils::structs::VideoInfo;
 
@@ -53,7 +53,7 @@ pub fn probe_video_detail(path: String) -> Result<VideoInfo, String> {
         }
     }
 
-    let thumbnail = generate_thumbnail(&path).unwrap_or_else(|e| e);
+    
 
     Ok(VideoInfo {
         duration,
@@ -66,6 +66,5 @@ pub fn probe_video_detail(path: String) -> Result<VideoInfo, String> {
         bitrate_formated,
         aspect_ratio,
         frame_rate,
-        thumbnail
     })
 }

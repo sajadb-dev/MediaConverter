@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+:root{
+  --button-primary: #f2b022;
+  --button-secondary: #333333;
+  --background: #050505;
+  --outline: #3D3D3DFF;
+  --file-item-background: #2c2c2c ;
+  --hover-color: #444444;
+  --active-color: #595959;
+  --tab-border: #343434;
+  --tab-active: #2e2e2e;
+  --tab-active-border: #595959;
+  --input-background: rgb(65, 65, 65);
+  --filedrop-color: #595959;
+  --select-color: #282828FF;
+}
 
 html, body {
   height: 100%;
@@ -7,7 +22,7 @@ html, body {
 }
 
 .dot {
-  background-image: radial-gradient(circle at 1px 1px, rgb(215, 215, 215) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgb(64, 64, 64) 1px, transparent 0);
   background-size: 15px 15px;
 }
 
@@ -15,3 +30,24 @@ html, body {
     font-family: 'Lobster', system-ui;
 }
 
+/* Style the scrollbar track */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Style the handle */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.5);
+  border-radius: 4px;
+}
+
+/* Style the scrollbar track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Optional: hover effect */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.8);
+}

@@ -4,7 +4,8 @@ use image::{ImageBuffer, Rgb};
 use uuid::Uuid;
 use ffmpeg::util::frame::video::Video as Frame;
 
-pub fn generate_thumbnail(path: &String) -> Result<String, String> {
+#[tauri::command]
+pub fn generate_thumbnail(path: String) -> Result<String, String> {
     ffmpeg::init().map_err(|e| e.to_string())?;
 
     let mut ictx = ffmpeg::format::input(&path).map_err(|e| e.to_string())?;
@@ -17,11 +18,8 @@ pub fn generate_thumbnail(path: &String) -> Result<String, String> {
     let stream_index = stream.index();
     let duration_seconds = stream.duration() as f64 * f64::from(stream.time_base());
 
-    let seek_time = if duration_seconds > 10.0 {
-        5.0
-    } else {
-        duration_seconds / 2.0
-    };
+    let seek_time = duration_seconds / 2.0;
+
     let seek_ts = (seek_time / f64::from(stream.time_base())) as i64;
     ictx.seek(seek_ts, ..seek_ts + 1).map_err(|e| e.to_string())?;
 
@@ -42,7 +40,6 @@ pub fn generate_thumbnail(path: &String) -> Result<String, String> {
     )
     .map_err(|e| e.to_string())?;
 
-    let mut valid_frame_found = false;
     let mut rgb_frame = Frame::empty();
 
     for (stream, packet) in ictx.packets() {
@@ -55,37 +52,7 @@ pub fn generate_thumbnail(path: &String) -> Result<String, String> {
         let mut decoded = Frame::empty();
         if decoder.receive_frame(&mut decoded).is_ok() {
             scaler.run(&decoded, &mut rgb_frame).map_err(|e| e.to_string())?;
-
-            // Check if the frame is not mostly black
-            let data = rgb_frame.data(0);
-            let stride = rgb_frame.stride(0) as usize;
-            let width = rgb_frame.width();
-            let height = rgb_frame.height();
-
-            let mut brightness_sum: u64 = 0;
-            let mut pixel_count: u64 = 0;
-
-            for y in 0..height {
-                for x in 0..width {
-                    let i = y as usize * stride + x as usize * 3;
-                    let r = data[i] as u64;
-                    let g = data[i + 1] as u64;
-                    let b = data[i + 2] as u64;
-                    brightness_sum += r + g + b;
-                    pixel_count += 1;
-                }
-            }
-
-            let avg_brightness = brightness_sum / (pixel_count * 3).max(1);
-            if avg_brightness > 5 {
-                valid_frame_found = true;
-                break;
-            }
         }
-    }
-
-    if !valid_frame_found {
-        return Err("No valid non-black frame found".into());
     }
 
     let width = rgb_frame.width();

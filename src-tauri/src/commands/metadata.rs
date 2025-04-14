@@ -1,88 +1,136 @@
 extern crate ffmpeg_next as ffmpeg;
+use serde::Serialize;
+use std::{fs,path::Path};
+
+#[derive(Serialize)]
+pub struct VideoMetadata {
+    width: u32,
+    height: u32,
+    bit_rate: usize,
+    max_rate: usize,
+    format: String,
+    has_b_frames: bool,
+    aspect_ratio: Option<(u32, u32)>,
+    color_space: Option<String>,
+    color_range: Option<String>,
+    color_primaries: Option<String>,
+    color_transfer_characteristic: Option<String>,
+    chroma_location: Option<String>,
+    references: i32,
+    intra_dc_precision: u8,
+}
+
+#[derive(Serialize)]
+pub struct AudioMetadata {
+    bit_rate: usize,
+    max_rate: usize,
+    rate: u32,
+    channels: u16,
+    format: String,
+    frames: usize,
+    align: bool,
+    channel_layout: String,
+}
+
+#[derive(Serialize)]
+pub struct StreamMetadata {
+    index: usize,
+    duration_seconds: f64,
+    frames: usize,
+    medium: String,
+    codec_id: String,
+    video: Option<VideoMetadata>,
+    audio: Option<AudioMetadata>,
+}
+
+#[derive(Serialize)]
+pub struct FileMetadata {
+    file_name: String,
+    file_path: String,
+    file_size: u64,
+    duration: f64,
+    streams: Vec<StreamMetadata>,
+}
 
 #[tauri::command]
-pub fn get_metadata(path: String) -> Result<(), String> {
+pub fn get_metadata(path: String) -> Result<FileMetadata, String> {
     ffmpeg::init().unwrap();
 
-    match ffmpeg::format::input(&path) {
-        Ok(context) => {
-            for (k, v) in context.metadata().iter() {
-                println!("{}: {}", k, v);
-            }
+    let mut streams_metadata = Vec::new();
+    
+    let path_obj = Path::new(&path);
+    let file_name = path_obj.file_name().and_then(|s| s.to_str()).unwrap_or("unknown").to_string();
 
-            if let Some(stream) = context.streams().best(ffmpeg::media::Type::Video) {
-                println!("Best video stream index: {}", stream.index());
-            }
+    let context = ffmpeg::format::input(&path).map_err(|e| e.to_string())?;
+    let file_duration = context.duration() as f64 / f64::from(ffmpeg::ffi::AV_TIME_BASE);
 
-            if let Some(stream) = context.streams().best(ffmpeg::media::Type::Audio) {
-                println!("Best audio stream index: {}", stream.index());
-            }
+    let metadata = fs::metadata(Path::new(&path)).map_err(|e| e.to_string())?;
+    let size_bytes = metadata.len();
 
-            if let Some(stream) = context.streams().best(ffmpeg::media::Type::Subtitle) {
-                println!("Best subtitle stream index: {}", stream.index());
-            }
+    for stream in context.streams() {
+        let codec = ffmpeg::codec::context::Context::from_parameters(stream.parameters()).map_err(|e| e.to_string())?;
+        let medium = codec.medium();
+        let id = format!("{:?}", codec.id());
 
-            println!(
-                "duration (seconds): {:.2}",
-                context.duration() as f64 / f64::from(ffmpeg::ffi::AV_TIME_BASE)
-            );
+        let duration_seconds = stream.duration() as f64 * f64::from(stream.time_base());
+        let mut video_metadata = None;
+        let mut audio_metadata = None;
 
-            for stream in context.streams() {
-                println!("stream index {}:", stream.index());
-                println!("\ttime_base: {}", stream.time_base());
-                println!("\tstart_time: {}", stream.start_time());
-                println!("\tduration (stream timebase): {}", stream.duration());
-                println!(
-                    "\tduration (seconds): {:.2}",
-                    stream.duration() as f64 * f64::from(stream.time_base())
-                );
-                println!("\tframes: {}", stream.frames());
-                println!("\tdisposition: {:?}", stream.disposition());
-                println!("\tdiscard: {:?}", stream.discard());
-                println!("\trate: {}", stream.rate());
-
-                let codec = ffmpeg::codec::context::Context::from_parameters(stream.parameters()).map_err(|e| e.to_string())?;
-                println!("\tmedium: {:?}", codec.medium());
-                println!("\tid: {:?}", codec.id());
-
-                if codec.medium() == ffmpeg::media::Type::Video {
-                    if let Ok(video) = codec.decoder().video() {
-                        println!("\tbit_rate: {}", video.bit_rate());
-                        println!("\tmax_rate: {}", video.max_bit_rate());
-                        println!("\tdelay: {}", video.delay());
-                        println!("\tvideo.width: {}", video.width());
-                        println!("\tvideo.height: {}", video.height());
-                        println!("\tvideo.format: {:?}", video.format());
-                        println!("\tvideo.has_b_frames: {}", video.has_b_frames());
-                        println!("\tvideo.aspect_ratio: {}", video.aspect_ratio());
-                        println!("\tvideo.color_space: {:?}", video.color_space());
-                        println!("\tvideo.color_range: {:?}", video.color_range());
-                        println!("\tvideo.color_primaries: {:?}", video.color_primaries());
-                        println!(
-                            "\tvideo.color_transfer_characteristic: {:?}",
-                            video.color_transfer_characteristic()
-                        );
-                        println!("\tvideo.chroma_location: {:?}", video.chroma_location());
-                        println!("\tvideo.references: {}", video.references());
-                        println!("\tvideo.intra_dc_precision: {}", video.intra_dc_precision());
-                    }
-                } else if codec.medium() == ffmpeg::media::Type::Audio {
-                    if let Ok(audio) = codec.decoder().audio() {
-                        println!("\tbit_rate: {}", audio.bit_rate());
-                        println!("\tmax_rate: {}", audio.max_bit_rate());
-                        println!("\tdelay: {}", audio.delay());
-                        println!("\taudio.rate: {}", audio.rate());
-                        println!("\taudio.channels: {}", audio.channels());
-                        println!("\taudio.format: {:?}", audio.format());
-                        println!("\taudio.frames: {}", audio.frames());
-                        println!("\taudio.align: {}", audio.align());
-                        println!("\taudio.channel_layout: {:?}", audio.channel_layout());
-                    }
+        match medium {
+            ffmpeg::media::Type::Video => {
+                if let Ok(video) = codec.decoder().video() {
+                    video_metadata = Some(VideoMetadata {
+                        width: video.width(),
+                        height: video.height(),
+                        bit_rate: video.bit_rate(),
+                        max_rate: video.max_bit_rate(),
+                        format: format!("{:?}", video.format()),
+                        has_b_frames: video.has_b_frames(),
+                        aspect_ratio: Some((video.aspect_ratio().0 as u32, video.aspect_ratio().1 as u32)),
+                        color_space: Some(format!("{:?}", video.color_space())),
+                        color_range: Some(format!("{:?}", video.color_range())),
+                        color_primaries: Some(format!("{:?}", video.color_primaries())),
+                        color_transfer_characteristic: Some(format!("{:?}", video.color_transfer_characteristic())),
+                        chroma_location: Some(format!("{:?}", video.chroma_location())),
+                        references: video.references() as i32,
+                        intra_dc_precision: video.intra_dc_precision(),
+                    });                    
                 }
             }
+            ffmpeg::media::Type::Audio => {
+                if let Ok(audio) = codec.decoder().audio() {
+                    audio_metadata = Some(AudioMetadata {
+                        bit_rate: audio.bit_rate(),
+                        max_rate: audio.max_bit_rate(),
+                        rate: audio.rate(),
+                        channels: audio.channels(),
+                        format: format!("{:?}", audio.format()),
+                        frames: audio.frames(),
+                        align: audio.align() != 0,
+                        channel_layout: format!("{:?}", audio.channel_layout()),
+                    });                    
+                }
+            }
+            _ => {}
         }
 
-        Err(error) => println!("error: {}", error),
+        streams_metadata.push(StreamMetadata {
+            index: stream.index(),
+            duration_seconds,
+            frames: stream.frames().max(0) as usize,
+            medium: format!("{:?}", medium),
+            codec_id: id,
+            video: video_metadata,
+            audio: audio_metadata,
+        });
     }
-    Ok(())
+
+
+    Ok(FileMetadata {
+        file_name: file_name,
+        file_path: path,
+        file_size: size_bytes,
+        duration: file_duration,
+        streams: streams_metadata,
+    })
 }

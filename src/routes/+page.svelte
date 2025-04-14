@@ -12,13 +12,14 @@
 		value: "Output Setting",
 		orientation: 'vertical',
 	});
+
   let Outputpath = 'C:/Users/DFM-RENDERING/Desktop/test.mkv';
 
-  let inner = $state<HTMLElement>();
   let isDragging = $state(false);
   let focusedfile: number = $state(-1);
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
+  let videoMetadata: any = $state([]);
 
 
   interface VideoInfo {
@@ -46,8 +47,9 @@
     for (const filepath of file) {
       try {
         const info: VideoInfo = await invoke("probe_video_detail", { path: filepath });
-        info.thumbnail = await loadThumbnail(info.thumbnail);
         videoInfo.push(info);
+        const meta: any = await invoke('get_metadata', {path: filepath});
+        videoMetadata.push(meta)
       } catch (e) {
         console.error(`Failed to get info for ${filepath}`, e);
       }
@@ -55,27 +57,23 @@
   } else if (file) {
     try {
       const info: VideoInfo = await invoke("get_video_info", { path: file });
-      info.thumbnail = await loadThumbnail(info.thumbnail);
       videoInfo = [info];
+      const meta: any = await invoke('get_metadata', {path: file});
+      videoMetadata = [meta];
     } catch (e) {
       console.error(`Failed to get info for ${file}`, e);
     }
   }
 }
 
-async function loadThumbnail(path: string) {
-  const imageBytes: number[] = await invoke('get_thumbnail_image', { path });
-  const blob = new Blob([new Uint8Array(imageBytes)], { type: 'image/jpeg' });
-  return URL.createObjectURL(blob);
-}
 
 async function metadata(path: string) {
-  await invoke('get_metadata', {path})
+ console.log(await invoke('get_metadata', {path}));
 }
 
 async function remux() {
-  if(videoInfo.length !== 0) {
-    for (const element of videoInfo) {
+  if(videoMetadata.length !== 0) {
+    for (const element of videoMetadata) {
       await invoke('remux', { inputPath: element.file_path, outputPath: Outputpath });
     }
   }
@@ -114,7 +112,7 @@ function focusgrab(index: number) {
             {#if videoInfo.length === 0}
             <div class="w-full h-full flex justify-center items-center">
                   <button 
-                      class="relative w-9/12 min-h-9/12 flex justify-center items-center rounded-2xl border-2 border-dashed bg-slate-100 border-slate-300 cursor-pointer"
+                      class="relative w-9/12 min-h-9/12 flex justify-center items-center rounded-2xl border-2 border-dashed bg-[var(--filedrop-color)] border-[var(--outline)] cursor-pointer"
                       ondragenter={draghandle}
                       ondragleave={draghandle}
                       onclick={addfile}
@@ -129,11 +127,11 @@ function focusgrab(index: number) {
               </div>
               {:else}
               <div class="w-full h-full py-6 flex flex-col items-center gap-4 overflow-y-auto">
-                {#each videoInfo as info, index}
+                {#each videoMetadata as info, index}
                 <Fileitem 
                   title={info.file_name} 
                   focus={focusgrab(index)} 
-                  thumbnail={info.thumbnail} 
+                  filepath={info.file_path}
                   index={index}
                   />
                 {/each}
@@ -149,28 +147,20 @@ function focusgrab(index: number) {
               <button class="group cursor-pointer text-ellipsis whitespace-nowrap text-sm outline-none py-0.5"
                 {...tabs.getTrigger(id)}>
                 <div style="writing-mode: vertical-rl;"
-                  class="border border-gray-200 group-data-[active]:bg-gray-200 group-data-[active]:border-gray-400 overflow-clip rounded-l-sm px-2 py-1 ">
+                  class="border border-[var(--tab-border)] group-data-[active]:bg-[var(--tab-active)] group-data-[active]:border-[var(--tab-active-border)] overflow-clip rounded-l-sm px-2 py-1 ">
 						      {id}
 					      </div>
               </button>
             {/each}
             </div>
             {#each tabIds as id}
-              <div class="h-full w-full border border-gray-100" {...tabs.getContent(id)}>
+              <div class="h-full w-full border-l border-[var(--outline)]" {...tabs.getContent(id)}>
                 {#if id === "Output Setting"}
                 <Propertiespanel/>
                 {:else if id === "Metadata"}
                 <Detailpanel
-                  file={isfilefocused && videoInfo.length > 0}
-                  filepath = {videoInfo[focusedfile].file_path}
-                  duration={videoInfo[focusedfile].duration}
-                  format={videoInfo[focusedfile].format}
-                  size={videoInfo[focusedfile].size_bytes}
-                  width={videoInfo[focusedfile].width}
-                  height={videoInfo[focusedfile].height}
-                  framerate={videoInfo[focusedfile].frame_rate}
-                  bitrate={videoInfo[focusedfile].bitrate_formated}
-                  aspectratio={videoInfo[focusedfile].aspect_ratio}
+                  file={isfilefocused && videoMetadata.length > 0}
+                  metadata={videoMetadata[focusedfile]}
                   />
                 {/if}
               </div>
@@ -182,10 +172,10 @@ function focusgrab(index: number) {
 
 <style global>
     :global(.splitpanes.my-theme) :global(.splitpanes__pane) {
-    background-color: #ffffff;
+    background-color: var(--background);
   }
   :global(.splitpanes.my-theme) :global(.splitpanes__splitter) {
-    background-color: #ffffff;
+    background-color: var(--background);
     box-sizing: border-box;
     position: relative;
     flex-shrink: 0;
@@ -195,11 +185,11 @@ function focusgrab(index: number) {
     position: absolute;
     top: 50%;
     left: 50%;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: var(--outline);
     transition: background-color 0.3s;
   }
   :global(.splitpanes.my-theme) :global(.splitpanes__splitter:hover:before), :global(.splitpanes.my-theme) :global(.splitpanes__splitter:hover:after) {
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: rgba(255, 255, 255, 0.25);
   }
   :global(.splitpanes.my-theme) :global(.splitpanes__splitter:first-child) {
     cursor: auto;
@@ -210,8 +200,8 @@ function focusgrab(index: number) {
   }
   :global(.my-theme.splitpanes--vertical) > :global(.splitpanes__splitter),
   :global(.my-theme) :global(.splitpanes--vertical) > :global(.splitpanes__splitter) {
-    width: 7px;
-    border-left: 1px solid #eee;
+    width: 2px;
+    border-left: 1px solid var(--outline);
     cursor: col-resize;
   }
   :global(.my-theme.splitpanes--vertical) > :global(.splitpanes__splitter:before), :global(.my-theme.splitpanes--vertical) > :global(.splitpanes__splitter:after), :global(.my-theme) :global(.splitpanes--vertical) > :global(.splitpanes__splitter:before), :global(.my-theme) :global(.splitpanes--vertical) > :global(.splitpanes__splitter:after) {
@@ -230,7 +220,7 @@ function focusgrab(index: number) {
   :global(.my-theme.splitpanes--horizontal) > :global(.splitpanes__splitter),
   :global(.my-theme) :global(.splitpanes--horizontal) > :global(.splitpanes__splitter) {
     height: 7px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--outline);
     cursor: row-resize;
   }
   :global(.my-theme.splitpanes--horizontal) > :global(.splitpanes__splitter:before), :global(.my-theme.splitpanes--horizontal) > :global(.splitpanes__splitter:after), :global(.my-theme) :global(.splitpanes--horizontal) > :global(.splitpanes__splitter:before), :global(.my-theme) :global(.splitpanes--horizontal) > :global(.splitpanes__splitter:after) {

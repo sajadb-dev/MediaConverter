@@ -27,25 +27,25 @@
     ]
 </script>
 
-<div class="w-full h-full">
+<div class="w-full h-full bg-[var(--button-secondary)]/60">
     <div class="w-fit p-2 text-sm">Output Setting:</div>
     <div class="w-full h-full mt-2 px-2">
         <label for="videotitle" class="text-xs font-bold">Output Title:</label>
-        <input id="videotitle" class="w-full h-6 px-2 rounded bg-gray-100" type="text"/>
+        <input id="videotitle" class="w-full h-6 px-2 rounded bg-[var(--input-background)]" type="text"/>
         <label for="containers" class="text-xs font-bold">Output Container:</label>
-        <select name="containers" class="w-full h-6 px-2 rounded text-sm bg-gray-200">
+        <select name="containers" class="w-full h-6 px-2 rounded text-sm bg-[var(--select-color)] hover:bg-[var(--select-color)]/50">
             {#each containerList as item }
             <option value={item.value}>{item.label}</option>
             {/each}
         </select>
         <label for="codecs" class="text-xs font-bold">Output Codec:</label>
-        <select name="codecs" class="w-full h-6 px-2 rounded bg-gray-200 text-sm">
+        <select name="codecs" class="w-full h-6 px-2 rounded text-sm bg-[var(--select-color)] hover:bg-[var(--select-color)]/50">
             {#each codecList as item }
             <option value={item.value}>{item.label}</option>
             {/each}
         </select>
         <label for="encodingspeed" class="text-xs font-bold">Encoding Speed:</label>
-        <select name="encodingspeed" class="w-full h-6 px-2 rounded bg-gray-200 text-sm">
+        <select name="encodingspeed" class="w-full h-6 px-2 rounded text-sm bg-[var(--select-color)] hover:bg-[var(--select-color)]/50">
             {#each encodingSpeed as item }
             <option value={item.value}>{item.label}</option>
             {/each}
