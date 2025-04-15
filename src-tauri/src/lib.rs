@@ -5,6 +5,7 @@ use commands::probe::probe_video_detail;
 use commands::thumbnail::generate_thumbnail;
 use commands::metadata::get_metadata;
 use commands::remux::remux;
+use commands::transcode::transcode_video;
 
 mod commands;
 mod utils;
@@ -19,7 +20,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![probe_video_detail,generate_thumbnail,get_thumbnail_image,get_metadata,remux])
+        .invoke_handler(tauri::generate_handler![probe_video_detail,generate_thumbnail,get_thumbnail_image,get_metadata,remux,transcode_video])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

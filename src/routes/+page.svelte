@@ -20,20 +20,50 @@
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
   let videoMetadata: any = $state([]);
+  let selectedcodec = $state();
+  let selectedcontainer = $state();
+  let selectedencodingspeed = $state();
+
+
+
+  const codecList = [
+    { value: "libx264", label: "H.264" },
+    { value: "libx265", label: "H.265/HEVC" },
+    { value: "mpeg1video", label: "MPEG-1" },
+    { value: "mpeg2video", label: "MPEG-2" },
+    { value: "mpeg4", label: "MPEG-4" },
+    { value: "libaom-av1", label: "AV1" },
+    { value: "libvpx-vp9", label: "WebM/VP9" },
+    { value: "libtheora", label: "Theora" },
+  ];
+
+  const containerList = [
+    { value: "matroska", label: "Matroska (.mkv)" },
+    { value: "webm", label: "WebM (.webm)" },
+    { value: "mpeg", label: "MPEG-1 (.mpg)" },
+    { value: "mpegts", label: "MPEG-2 TS (.ts)" },
+    { value: "mp4", label: "MPEG-4 (.mp4)" },
+    { value: "ogg", label: "OGG (.ogg)" },
+    { value: "avi", label: "AVI (.avi)" },
+    { value: "mov", label: "QuickTime/MOV (.mov)" },
+    { value: "flv", label: "Flash Video (.flv)" },
+    { value: "asf", label: "ASF/WMV (.asf/.wmv)" },
+    { value: "3gp", label: "3GP (.3gp)" },
+  ];
+
+  const encodingSpeed = [
+    { value: "1", label: "Slowest" },
+    { value: "2", label: "Good" },
+    { value: "3", label: "Realtime" },
+  ];
 
 
   interface VideoInfo {
-    duration: string;
-    format: string;
-    size_bytes: number;
     file_path: string;
     file_name: string;
-    width: number;
-    height: number;
-    bitrate_formated: string;
-    aspect_ratio: String;
-    frame_rate: number;
-    thumbnail: string;
+    codec: string;
+    container: string;
+    encodingspeed: string;
   }
 
   async function addfile(){
@@ -71,14 +101,27 @@ async function metadata(path: string) {
  console.log(await invoke('get_metadata', {path}));
 }
 
-async function remux() {
-  if(videoMetadata.length !== 0) {
-    for (const element of videoMetadata) {
-      await invoke('remux', { inputPath: element.file_path, outputPath: Outputpath });
-    }
-  }
+async function remux(InputPath: string , Outputpath: string) {
+  await invoke('remux', { inputPath: InputPath, outputPath: Outputpath });  
+}
+
+async function transcode(inputPath: string, outputPath: string, codecName: string, codecOpts: string) {
+  await invoke("transcode_video", {
+    inputPath,
+    outputPath,
+    codecName,
+    codecOpts
+  });
 }
   
+function convert() {
+  if (selectedcontainer !== undefined && selectedcodec === undefined) {
+    remux();
+  } else if (selectedcontainer !== undefined && selectedcodec !== undefined) {
+    
+  }
+
+}
 
 function draghandle(){ isDragging = !isDragging;}
 
@@ -102,7 +145,7 @@ function focusgrab(index: number) {
     <div>
         <Titlebar/>
         <Menubar addfile={addfile}/>
-        <Toolbar addfile={addfile} removefile={removefile} convertfile={remux}/>
+        <Toolbar addfile={addfile} removefile={removefile} convertfile={convert}/>
     </div>
 </div>
 <div class="h-full box-border overflow-hidden">
@@ -156,7 +199,7 @@ function focusgrab(index: number) {
             {#each tabIds as id}
               <div class="h-full w-full border-l border-[var(--outline)]" {...tabs.getContent(id)}>
                 {#if id === "Output Setting"}
-                <Propertiespanel/>
+                <Propertiespanel bind:codec={selectedcodec} bind:container={selectedcontainer} bind:encodingspeed={selectedencodingspeed}/>
                 {:else if id === "Metadata"}
                 <Detailpanel
                   file={isfilefocused && videoMetadata.length > 0}
