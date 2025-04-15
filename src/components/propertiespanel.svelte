@@ -1,13 +1,24 @@
 <script lang="ts">
   import { Select } from "melt/builders";
+  import { onMount } from "svelte";
 
-  let { container = $bindable(), codec = $bindable(), encodingspeed = $bindable()} = $props();
+  let { file, container, codec, encodingspeed} = $props();
 
     $effect(() => {
-        container = selectcontainer.value;
-        codec = selectcodec.value;
-        encodingspeed = selectencodingspeed.value;
+        if (file) {
+            container = selectcontainer.value;
+            codec = selectcodec.value;
+            encodingspeed = selectencodingspeed.value;
+        }
     });
+
+    onMount(()=>{
+        if (file) {
+            selectcontainer.value = container;
+            selectcodec.value = codec;
+            selectencodingspeed.value = encodingspeed;
+        }
+    })
 
   const codecList = [
     { value: "libx264", label: "H.264" },
@@ -34,7 +45,7 @@
     { value: "3gp", label: "3GP (.3gp)" },
   ];
 
-  const encodingSpeed = [
+  const encodingSpeedList = [
     { value: "1", label: "Slowest" },
     { value: "2", label: "Good" },
     { value: "3", label: "Realtime" },
@@ -81,6 +92,7 @@ type EncodingSpeecOption = (typeof encodingspeedoption)[number];
 
 <div class="w-full h-full bg-[var(--button-secondary)]/60">
   <div class="w-fit p-2 text-sm">Output Setting:</div>
+  {#if file}
   <div class="w-full h-full mt-2 px-2">
     <label for="videotitle" class="text-xs font-bold">Output Title:</label>
     <input id="videotitle" class="w-full h-6 px-2 rounded bg-[var(--input-background)]" type="text"/>
@@ -131,6 +143,6 @@ type EncodingSpeecOption = (typeof encodingspeedoption)[number];
         </div>
       {/each}
     </div>
-
   </div>
+  {/if}
 </div>

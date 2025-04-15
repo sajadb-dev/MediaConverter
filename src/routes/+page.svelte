@@ -20,10 +20,13 @@
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
   let videoMetadata: any = $state([]);
-  let selectedcodec = $state();
-  let selectedcontainer = $state();
-  let selectedencodingspeed = $state();
+  let selectedcodec = $state('');
+  let selectedcontainer = $state('');
+  let selectedencodingspeed = $state('');
 
+  $inspect(selectedcodec);
+  $inspect(videoInfo);
+  $inspect(focusedfile);
 
 
   const codecList = [
@@ -57,14 +60,26 @@
     { value: "3", label: "Realtime" },
   ];
 
-
   interface VideoInfo {
-    file_path: string;
-    file_name: string;
+    input_path: string;
+    output_path?: string;
     codec: string;
     container: string;
     encodingspeed: string;
   }
+
+  $effect(() => {
+    if (videoInfo.length !== 0 && focusedfile !== -1) {
+      if (selectedcodec !== undefined)
+      videoInfo[focusedfile].codec = selectedcodec;
+      if (selectedcontainer !== undefined)
+      videoInfo[focusedfile].container = selectedcontainer;
+      if (selectedencodingspeed !== undefined)
+      videoInfo[focusedfile].encodingspeed = selectedencodingspeed;
+    }
+
+  })
+
 
   async function addfile(){
     const file = await open({multiple: true, directory: false,
@@ -76,26 +91,35 @@
    if (Array.isArray(file)) {
     for (const filepath of file) {
       try {
-        const info: VideoInfo = await invoke("probe_video_detail", { path: filepath });
-        videoInfo.push(info);
         const meta: any = await invoke('get_metadata', {path: filepath});
-        videoMetadata.push(meta)
+        let tmp: VideoInfo = {
+          input_path: meta.file_path,
+          codec: '',
+          container: '',
+          encodingspeed: ''
+        };
+        videoMetadata.push(meta);
+        videoInfo.push(tmp);
       } catch (e) {
         console.error(`Failed to get info for ${filepath}`, e);
       }
     }
   } else if (file) {
     try {
-      const info: VideoInfo = await invoke("get_video_info", { path: file });
-      videoInfo = [info];
       const meta: any = await invoke('get_metadata', {path: file});
+      let tmp: VideoInfo = {
+          input_path: meta.file_path,
+          codec: '',
+          container: '',
+          encodingspeed: ''
+        };
       videoMetadata = [meta];
+      videoInfo = [tmp]
     } catch (e) {
       console.error(`Failed to get info for ${file}`, e);
     }
   }
 }
-
 
 async function metadata(path: string) {
  console.log(await invoke('get_metadata', {path}));
@@ -116,7 +140,7 @@ async function transcode(inputPath: string, outputPath: string, codecName: strin
   
 function convert() {
   if (selectedcontainer !== undefined && selectedcodec === undefined) {
-    remux();
+    
   } else if (selectedcontainer !== undefined && selectedcodec !== undefined) {
     
   }
@@ -127,8 +151,10 @@ function draghandle(){ isDragging = !isDragging;}
 
 function removefile() {
   if(focusedfile !== -1){
-    if(videoInfo.length > 0)
+    if(videoMetadata.length > 0)
+      videoMetadata.splice(focusedfile, 1);
       videoInfo.splice(focusedfile, 1);
+      isfilefocused = false;
   }
 }
 
@@ -136,7 +162,6 @@ function focusgrab(index: number) {
   isfilefocused = true;
   focusedfile = index;
   console.log(focusedfile);
-  metadata(videoInfo[focusedfile].file_path);
 }
 
 </script>
@@ -152,7 +177,7 @@ function focusgrab(index: number) {
     <Splitpanes theme="my-theme">
         <Pane  size={65} minSize={20}>
           <div class="dot w-full h-full flex justify-center items-center">
-            {#if videoInfo.length === 0}
+            {#if videoMetadata.length === 0}
             <div class="w-full h-full flex justify-center items-center">
                   <button 
                       class="relative w-9/12 min-h-9/12 flex justify-center items-center rounded-2xl border-2 border-dashed bg-[var(--filedrop-color)] border-[var(--outline)] cursor-pointer"
@@ -199,7 +224,13 @@ function focusgrab(index: number) {
             {#each tabIds as id}
               <div class="h-full w-full border-l border-[var(--outline)]" {...tabs.getContent(id)}>
                 {#if id === "Output Setting"}
-                <Propertiespanel bind:codec={selectedcodec} bind:container={selectedcontainer} bind:encodingspeed={selectedencodingspeed}/>
+                {#if isfilefocused && videoInfo[focusedfile]}
+                <Propertiespanel
+                  file={isfilefocused && videoMetadata.length > 0}
+                  codec={videoInfo[focusedfile].codec} 
+                  container={videoInfo[focusedfile].container} 
+                  encodingspeed={videoInfo[focusedfile].encodingspeed}/>
+                  {/if}
                 {:else if id === "Metadata"}
                 <Detailpanel
                   file={isfilefocused && videoMetadata.length > 0}

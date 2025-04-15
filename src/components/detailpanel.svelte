@@ -30,25 +30,23 @@
         <Metadataitem label="File path" inputvalue={formatFileSize(metadata.file_size)}/>
       </div>
       {#each metadata.streams as stream, i}
-    <div class="flex flex-col gap-1 bg-[var(--background)]/50 rounded-md p-1">
-      <h3 class="font-bold">Stream {i} ({stream.medium}) :</h3>
-      <Metadataitem label="Codec" inputvalue={stream.codec_id}/>
-      <Metadataitem label="Duration" inputvalue={stream.duration_seconds?.toFixed(2)}/>
-      <Metadataitem label="Frames" inputvalue={stream.frames}/>
-
-      {#if stream.video}
-        <Metadataitem label="Resolution" inputvalue={`${stream.video.width}x${stream.video.height}`}/>
-        <Metadataitem label="Bitrate" inputvalue={stream.video.bit_rate}/>
-        <Metadataitem label="Format" inputvalue={stream.video.format}/>
-      {/if}
-
-      {#if stream.audio}
-        <Metadataitem label="Channels" inputvalue={stream.audio.channels}/>
-        <Metadataitem label="Rate" inputvalue={`${stream.audio.rate} Hz`}/>
-        <Metadataitem label="Layout" inputvalue={stream.audio.channel_layout}/>
-      {/if}
-    </div>
-  {/each}
+      <div class="flex flex-col gap-1 bg-[var(--background)]/50 rounded-md p-1">
+        <h3 class="font-bold">Stream {i} ({stream.medium}) :</h3>
+        <Metadataitem label="Codec" inputvalue={stream.codec_id}/>
+        <Metadataitem label="Duration" inputvalue={stream.duration_seconds?.toFixed(2)}/>
+        <Metadataitem label="Frames" inputvalue={stream.frames}/>
+        {#if stream.video}
+          <Metadataitem label="Resolution" inputvalue={`${stream.video.width}x${stream.video.height}`}/>
+          <Metadataitem label="Bitrate" inputvalue={stream.video.bit_rate}/>
+          <Metadataitem label="Format" inputvalue={stream.video.format}/>
+        {/if}
+        {#if stream.audio}
+          <Metadataitem label="Channels" inputvalue={stream.audio.channels}/>
+          <Metadataitem label="Rate" inputvalue={`${stream.audio.rate} Hz`}/>
+          <Metadataitem label="Layout" inputvalue={stream.audio.channel_layout}/>
+        {/if}
+      </div>
+    {/each}
     </div>
     {/if}
 </div>
