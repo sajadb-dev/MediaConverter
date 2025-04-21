@@ -1,24 +1,56 @@
 <script lang="ts">
   import { Select } from "melt/builders";
-  import { onMount } from "svelte";
+  import { open } from "@tauri-apps/plugin-dialog";
 
-  let { file, container, codec, encodingspeed} = $props();
+  let { file, videoinfo, valuechange, outputpathChange} = $props();
+  let outputpath: HTMLInputElement | undefined = $state();
+  let outputtitle: HTMLInputElement | undefined = $state();
 
-    $effect(() => {
-        if (file) {
-            container = selectcontainer.value;
-            codec = selectcodec.value;
-            encodingspeed = selectencodingspeed.value;
-        }
+  
+  async function selectDirectory() {
+    const selected = await open({
+      directory: true,
+      multiple: false, // set to true if you want multiple folders
+      title: 'Select a directory'
     });
+    outputpath.value = selected;
+    outputpathChange(outputpath?.value, outputtitle?.value );
+  }
 
-    onMount(()=>{
-        if (file) {
-            selectcontainer.value = container;
-            selectcodec.value = codec;
-            selectencodingspeed.value = encodingspeed;
+
+  export const setselectValues = () => {
+    if(videoinfo) {
+      selectcontainer.select(videoinfo.container);
+      selectcodec.select(videoinfo.codec);
+      selectencodingspeed.select(videoinfo.encodingspeed);
+      if(outputpath) {
+        if(videoinfo.output_path === undefined)
+          outputpath.value = "";
+        else
+          outputpath.value = videoinfo.output_path;
+      }
+      if(outputtitle) {
+        if(videoinfo.output_path === undefined)
+          outputtitle.value = "";
+        else {
+          const filename = videoinfo.output_path.split(/[\\/]/).pop();
+          const dot = filename.lastIndexOf(".");
+          outputtitle.value = dot > 0 ? filename.slice(0, dot) : filename;
         }
-    })
+      }
+    }
+  }
+
+    function Containervaluechange() {
+      valuechange("container",selectcontainer.value);
+    }
+    function CodecValueChange() {
+      valuechange("codec",selectcodec.value);
+    }
+    function encodingSpeedValueChange() {
+      valuechange("encodingspeed",selectencodingspeed.value);
+    }
+
 
   const codecList = [
     { value: "libx264", label: "H.264" },
@@ -32,7 +64,7 @@
   ];
 
   const containerList = [
-    { value: "matroska", label: "Matroska (.mkv)" },
+    { value: "mkv", label: "Matroska (.mkv)" },
     { value: "webm", label: "WebM (.webm)" },
     { value: "mpeg", label: "MPEG-1 (.mpg)" },
     { value: "mpegts", label: "MPEG-2 TS (.ts)" },
@@ -52,6 +84,7 @@
   ];
 
 const codecoptions = [
+    "same",
     "H.264",
     "H.265/HEVC",
     "MPEG-1",
@@ -64,6 +97,7 @@ const codecoptions = [
 type CodecOption = (typeof codecoptions)[number];
 
 const containeroptions = [
+  "same",
   "Matroska (.mkv)",
   "WebM (.webm)",
   "MPEG-1 (.mpg)",
@@ -85,17 +119,32 @@ const containeroptions = [
 ] as const;
 type EncodingSpeecOption = (typeof encodingspeedoption)[number];
 
-    const selectcontainer = new Select<ContainerOption>();
-    const selectcodec = new Select<CodecOption>();
-    const selectencodingspeed = new Select<EncodingSpeecOption>();
+    const selectcontainer = new Select<ContainerOption>({
+      onValueChange: Containervaluechange,
+    });
+    const selectcodec = new Select<CodecOption>({
+      onValueChange: CodecValueChange,
+    });
+    const selectencodingspeed = new Select<EncodingSpeecOption>({
+      onValueChange: encodingSpeedValueChange,
+    });
+
 </script>
 
 <div class="w-full h-full bg-[var(--button-secondary)]/60">
   <div class="w-fit p-2 text-sm">Output Setting:</div>
   {#if file}
   <div class="w-full h-full mt-2 px-2">
+
+    <label for="outputpath" class="text-xs font-bold">Output Path:</label>
+    <div class="w-full h-6 flex justify-between px-2 rounded bg-[var(--input-background)]">
+      <input bind:this={outputpath} class="w-full truncate" id="outputpath" type="text" oninput={() => outputpathChange(outputpath?.value,outputtitle?.value)}/>
+      <button class=" min-w-28 bg-[var(--select-color)] hover:bg-[var(--select-color)]/60 hover:cursor-pointer px-2 rounded-md text-sm" onclick={selectDirectory}>Select Folder</button>
+    </div>
+    
+
     <label for="videotitle" class="text-xs font-bold">Output Title:</label>
-    <input id="videotitle" class="w-full h-6 px-2 rounded bg-[var(--input-background)]" type="text"/>
+    <input bind:this={outputtitle} id="videotitle" class="w-full h-6 px-2 rounded bg-[var(--input-background)] truncate" type="text" oninput={() => outputpathChange(outputpath?.value,outputtitle?.value)}/>
 
     <!-- Select for Container -->
     <label for={selectcontainer.ids.trigger} class="text-xs font-bold">Containers</label>

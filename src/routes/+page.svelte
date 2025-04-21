@@ -4,6 +4,7 @@
   import { Tabs } from "melt/builders";
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
+  import type { SvelteComponent } from 'svelte';
 
 
   const tabIds = ["Output Setting", "Metadata"];
@@ -13,20 +14,17 @@
 		orientation: 'vertical',
 	});
 
-  let Outputpath = 'C:/Users/DFM-RENDERING/Desktop/test.mkv';
+  let Outputpath = 'C:/Users/DFM-RENDERING/Desktop/';
 
   let isDragging = $state(false);
   let focusedfile: number = $state(-1);
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
   let videoMetadata: any = $state([]);
-  let selectedcodec = $state('');
-  let selectedcontainer = $state('');
-  let selectedencodingspeed = $state('');
+  let settingpanel: SvelteComponent | undefined = $state();
 
-  $inspect(selectedcodec);
+
   $inspect(videoInfo);
-  $inspect(focusedfile);
 
 
   const codecList = [
@@ -41,7 +39,7 @@
   ];
 
   const containerList = [
-    { value: "matroska", label: "Matroska (.mkv)" },
+    { value: "mkv", label: "Matroska (.mkv)" },
     { value: "webm", label: "WebM (.webm)" },
     { value: "mpeg", label: "MPEG-1 (.mpg)" },
     { value: "mpegts", label: "MPEG-2 TS (.ts)" },
@@ -68,19 +66,6 @@
     encodingspeed: string;
   }
 
-  $effect(() => {
-    if (videoInfo.length !== 0 && focusedfile !== -1) {
-      if (selectedcodec !== undefined)
-      videoInfo[focusedfile].codec = selectedcodec;
-      if (selectedcontainer !== undefined)
-      videoInfo[focusedfile].container = selectedcontainer;
-      if (selectedencodingspeed !== undefined)
-      videoInfo[focusedfile].encodingspeed = selectedencodingspeed;
-    }
-
-  })
-
-
   async function addfile(){
     const file = await open({multiple: true, directory: false,
       filters: [{ 
@@ -94,9 +79,9 @@
         const meta: any = await invoke('get_metadata', {path: filepath});
         let tmp: VideoInfo = {
           input_path: meta.file_path,
-          codec: '',
-          container: '',
-          encodingspeed: ''
+          codec: 'same',
+          container: 'same',
+          encodingspeed: 'good'
         };
         videoMetadata.push(meta);
         videoInfo.push(tmp);
@@ -109,9 +94,9 @@
       const meta: any = await invoke('get_metadata', {path: file});
       let tmp: VideoInfo = {
           input_path: meta.file_path,
-          codec: '',
-          container: '',
-          encodingspeed: ''
+          codec: 'same',
+          container: 'same',
+          encodingspeed: 'good'
         };
       videoMetadata = [meta];
       videoInfo = [tmp]
@@ -119,10 +104,6 @@
       console.error(`Failed to get info for ${file}`, e);
     }
   }
-}
-
-async function metadata(path: string) {
- console.log(await invoke('get_metadata', {path}));
 }
 
 async function remux(InputPath: string , Outputpath: string) {
@@ -137,14 +118,49 @@ async function transcode(inputPath: string, outputPath: string, codecName: strin
     codecOpts
   });
 }
-  
-function convert() {
-  if (selectedcontainer !== undefined && selectedcodec === undefined) {
-    
-  } else if (selectedcontainer !== undefined && selectedcodec !== undefined) {
-    
-  }
 
+function valuechangeHandle(i: string, e: any) {
+  if(i === "container")
+    videoInfo[focusedfile].container = e;
+  else if (i === "codec")
+    videoInfo[focusedfile].codec = e;
+  else if (i === "encodingspeed")
+    videoInfo[focusedfile].encodingspeed = e;
+}
+
+function outputpathChangehandler(output_path: any, output_title: any) {
+  videoInfo[focusedfile].output_path = `${output_path}\\${output_title}.`;;
+}
+
+function removeFileExtension(file_name: string) {
+  const lastDotIndex = file_name.lastIndexOf('.');
+  if (lastDotIndex !== -1) {
+    return file_name.slice(0, lastDotIndex);
+  }
+  return file_name; // No file extension found
+}
+
+function makeoutputpath(inputpath: string,container: string) {
+  let filename = removeFileExtension(inputpath.split('\\').pop()?.split('/').pop() || '');
+  console.log(filename);
+  let format = containerList.find((entry) => entry.label === container)?.value;
+  console.log(format);
+  let temp = `${Outputpath}${filename}.${format}`;
+  return temp;
+}
+
+function convert() {
+  videoInfo.forEach(elm => {
+    if(elm.container !== "same" && elm.codec === "same") {
+      let temp_path
+      if(elm.output_path === undefined)
+        temp_path = makeoutputpath(elm.input_path,elm.container);
+      else
+        temp_path = makeoutputpath(elm.output_path,elm.container);
+      console.log(temp_path);
+      remux(elm.input_path, temp_path);
+    }
+  });
 }
 
 function draghandle(){ isDragging = !isDragging;}
@@ -158,10 +174,22 @@ function removefile() {
   }
 }
 
+function activefileitem(i: number) {
+  const tmp = document.querySelector(`.file-item-${i}`);
+  tmp?.classList.add('ring-3');
+}
+function deactivefileitem(i: number) {
+  const tmp = document.querySelector(`.file-item-${i}`);
+  tmp?.classList.remove('ring-3');
+}
+
 function focusgrab(index: number) {
   isfilefocused = true;
+  deactivefileitem(focusedfile);
   focusedfile = index;
   console.log(focusedfile);
+  activefileitem(focusedfile);
+  settingpanel?.setselectValues();
 }
 
 </script>
@@ -196,7 +224,8 @@ function focusgrab(index: number) {
               {:else}
               <div class="w-full h-full py-6 flex flex-col items-center gap-4 overflow-y-auto">
                 {#each videoMetadata as info, index}
-                <Fileitem 
+                <Fileitem
+                  classnames={`file-item-${index}`}
                   title={info.file_name} 
                   focus={focusgrab(index)} 
                   filepath={info.file_path}
@@ -224,13 +253,12 @@ function focusgrab(index: number) {
             {#each tabIds as id}
               <div class="h-full w-full border-l border-[var(--outline)]" {...tabs.getContent(id)}>
                 {#if id === "Output Setting"}
-                {#if isfilefocused && videoInfo[focusedfile]}
                 <Propertiespanel
                   file={isfilefocused && videoMetadata.length > 0}
-                  codec={videoInfo[focusedfile].codec} 
-                  container={videoInfo[focusedfile].container} 
-                  encodingspeed={videoInfo[focusedfile].encodingspeed}/>
-                  {/if}
+                  valuechange={valuechangeHandle}
+                  outputpathChange={outputpathChangehandler}
+                  videoinfo={videoInfo[focusedfile]}
+                  bind:this={settingpanel}/>
                 {:else if id === "Metadata"}
                 <Detailpanel
                   file={isfilefocused && videoMetadata.length > 0}

@@ -4,7 +4,7 @@
     import { onMount } from "svelte";
     import Skeleton from "./skeleton/skeleton.svelte";
     
-    const { title, progressvalue = 0, focus, filepath, index} = $props()
+    const { classnames , title, progressvalue = 0, focus, filepath, index } = $props()
     let thumbnail = $state('');
     const progress = new Progress();
     progress.value = progressvalue;
@@ -24,7 +24,7 @@
     thumbnail = await loadThumbnail(temp);
  });
 </script>
-<div class="w-[95%] min-h-22 max-h-22 flex bg-[var(--file-item-background)] rounded-sm overflow-hidden focus:ring-2" onclick={focus} onkeydown={focus} role="button" tabindex={index}>
+<div class="{classnames} w-[95%] min-h-22 max-h-22 flex bg-[var(--file-item-background)] rounded-sm overflow-hidden focus:ring-2" onclick={focus} onkeydown={focus} role="button" tabindex={index}>
     <div class="h-full min-w-6 flex items-center justify-center border-r border-[var(--outline)]">
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M20 7H4m16 5H4m16 5H4"/></svg>
     </div>
