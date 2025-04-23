@@ -49,6 +49,7 @@ pub struct FileMetadata {
     file_path: String,
     file_size: u64,
     duration: f64,
+    progress: f64,
     streams: Vec<StreamMetadata>,
 }
 
@@ -131,6 +132,7 @@ pub fn get_metadata(path: String) -> Result<FileMetadata, String> {
         file_path: path,
         file_size: size_bytes,
         duration: file_duration,
+        progress: 0.00,
         streams: streams_metadata,
     })
 }

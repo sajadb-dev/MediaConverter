@@ -5,6 +5,7 @@
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import type { SvelteComponent } from 'svelte';
+  import { listen } from '@tauri-apps/api/event';
 
 
   const tabIds = ["Output Setting", "Metadata"];
@@ -18,6 +19,7 @@
 
   let isDragging = $state(false);
   let focusedfile: number = $state(-1);
+  let convertingfile: number = $state(0);
   let isfilefocused: boolean = $state(false);
   let videoInfo: VideoInfo[] = $state([]);
   let videoMetadata: any = $state([]);
@@ -25,6 +27,7 @@
 
 
   $inspect(videoInfo);
+  $inspect(convertingfile);
 
 
   const codecList = [
@@ -53,14 +56,15 @@
   ];
 
   const encodingSpeed = [
-    { value: "1", label: "Slowest" },
-    { value: "2", label: "Good" },
-    { value: "3", label: "Realtime" },
+    { value: "preset=slow", label: "Slowest" },
+    { value: "preset=medium", label: "Good" },
+    { value: "preset=ultrafast", label: "Realtime" },
   ];
 
   interface VideoInfo {
     input_path: string;
-    output_path?: string;
+    output_path: string | undefined;
+    duration: number,
     codec: string;
     container: string;
     encodingspeed: string;
@@ -79,9 +83,11 @@
         const meta: any = await invoke('get_metadata', {path: filepath});
         let tmp: VideoInfo = {
           input_path: meta.file_path,
+          output_path: undefined,
+          duration: meta.duration,
           codec: 'same',
           container: 'same',
-          encodingspeed: 'good'
+          encodingspeed: 'Good'
         };
         videoMetadata.push(meta);
         videoInfo.push(tmp);
@@ -94,9 +100,11 @@
       const meta: any = await invoke('get_metadata', {path: file});
       let tmp: VideoInfo = {
           input_path: meta.file_path,
+          output_path: undefined,
+          duration: meta.duration,
           codec: 'same',
           container: 'same',
-          encodingspeed: 'good'
+          encodingspeed: 'Good'
         };
       videoMetadata = [meta];
       videoInfo = [tmp]
@@ -106,8 +114,8 @@
   }
 }
 
-async function remux(InputPath: string , Outputpath: string) {
-  await invoke('remux', { inputPath: InputPath, outputPath: Outputpath });  
+async function remux(InputPath: string , Outputpath: string, duration: number) {
+  await invoke('remux', { inputPath: InputPath, outputPath: Outputpath, duration: duration });  
 }
 
 async function transcode(inputPath: string, outputPath: string, codecName: string, codecOpts: string) {
@@ -127,6 +135,19 @@ function valuechangeHandle(i: string, e: any) {
   else if (i === "encodingspeed")
     videoInfo[focusedfile].encodingspeed = e;
 }
+
+listen('remux-start', () => {
+  console.log('Remuxing started!');
+});
+
+listen<number>('ffmpeg-progress', (event) => {
+  videoMetadata[convertingfile].progress = event.payload.toFixed(2);
+});
+
+listen('remux-complete', () => {
+  videoMetadata[convertingfile].progress = 100;
+  convertingfile = convertingfile + 1;
+});
 
 function outputpathChangehandler(output_path: any, output_title: any) {
   videoInfo[focusedfile].output_path = `${output_path}\\${output_title}.`;;
@@ -151,14 +172,20 @@ function makeoutputpath(inputpath: string,container: string) {
 
 function convert() {
   videoInfo.forEach(elm => {
-    if(elm.container !== "same" && elm.codec === "same") {
-      let temp_path
+    let temp_path
       if(elm.output_path === undefined)
         temp_path = makeoutputpath(elm.input_path,elm.container);
       else
         temp_path = makeoutputpath(elm.output_path,elm.container);
-      console.log(temp_path);
-      remux(elm.input_path, temp_path);
+    if(elm.container !== "same" && elm.codec === "same") {
+      remux(elm.input_path, temp_path, elm.duration);
+    }
+    else if (elm.codec !== "same") {
+      let codecEntry = codecList.find((entry) => entry.label === elm.codec);
+      let codec = codecEntry ? codecEntry.value : '';
+      let encodespeed = encodingSpeed.find((entry) => entry.label === elm.encodingspeed)?.value;
+      console.log(encodespeed);
+      transcode(elm.input_path,temp_path,codec,`${encodespeed}, crf=18`);
     }
   });
 }
@@ -229,6 +256,7 @@ function focusgrab(index: number) {
                   title={info.file_name} 
                   focus={focusgrab(index)} 
                   filepath={info.file_path}
+                  progressvalue={info.progress}
                   index={index}
                   />
                 {/each}

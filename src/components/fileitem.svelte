@@ -4,14 +4,14 @@
     import { onMount } from "svelte";
     import Skeleton from "./skeleton/skeleton.svelte";
     
-    const { classnames , title, progressvalue = 0, focus, filepath, index } = $props()
+    const { classnames , title, progressvalue, focus, filepath, index } = $props()
     let thumbnail = $state('');
     const progress = new Progress();
-    progress.value = progressvalue;
 
-    if(progress.value === 100) {
-
-     }
+    $effect(()=> {
+        if(progressvalue !== 0.00)
+        progress.value = progressvalue;
+    })
 
     async function loadThumbnail(path: string) {
         const imageBytes: number[] = await invoke('get_thumbnail_image', { path });

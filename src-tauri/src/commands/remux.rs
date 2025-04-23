@@ -1,16 +1,25 @@
 extern crate ffmpeg_next as ffmpeg;
 use ffmpeg::{codec, encoder, format, log, media, Rational};
+use tauri::Window;
+use tauri::Emitter;
 
 #[tauri::command]
-pub fn remux(input_path: String, output_path: String) {
+pub fn remux(
+    window: Window, 
+    duration: f64,
+    input_path: String, 
+    output_path: String
+    ) -> Result<String, String> {
 
     ffmpeg::init().unwrap();
     log::set_level(log::Level::Warning);
 
+    window.emit("remux-start", ()).unwrap();
+
     let mut ictx = format::input(&input_path).unwrap();
     let mut octx = format::output(&output_path).unwrap();
 
-    let mut stream_mapping = vec![0; ictx.nb_streams() as _];
+    let mut stream_mapping = vec![0isize; ictx.nb_streams() as _];
     let mut ist_time_bases = vec![Rational(0, 1); ictx.nb_streams() as _];
     let mut ost_index = 0;
     for (ist_index, ist) in ictx.streams().enumerate() {
@@ -39,6 +48,12 @@ pub fn remux(input_path: String, output_path: String) {
     octx.write_header().unwrap();
 
     for (stream, mut packet) in ictx.packets() {
+        let time_base: f64 = stream.time_base().into();
+        let time = packet.pts().unwrap_or(0) as f64 * time_base;
+
+        let progress = (time / duration) * 100.0;
+        window.emit("ffmpeg-progress", progress).unwrap();
+
         let ist_index = stream.index();
         let ost_index = stream_mapping[ist_index];
         if ost_index < 0 {
@@ -52,4 +67,9 @@ pub fn remux(input_path: String, output_path: String) {
     }
 
     octx.write_trailer().unwrap();
+
+    window.emit("remux-complete", ()).unwrap();
+
+    Ok("success".to_string())
+
 }
