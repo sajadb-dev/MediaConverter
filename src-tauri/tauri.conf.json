@@ -32,6 +32,16 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "resources": [
+      "./avdevice-61.dll",
+      "./avcodec-61.dll",
+      "./avfilter-10.dll",
+      "./avformat-61.dll",
+      "./avutil-59.dll",
+      "./swscale-8.dll",
+      "./swresample-5.dll",
+      "./postproc-58.dll"
     ]
   }
 }
